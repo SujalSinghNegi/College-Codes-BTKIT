@@ -1,4 +1,0 @@
-RR Gantt Chart:
-0-[ P1 ]-2-[ P2 ]-4-[ P3 ]-6-[ P1 ]-8-[ P2 ]-9-[ P1 ]-10
-
-Avg WT: 4, Avg TAT: 7.33333

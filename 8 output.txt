@@ -1,4 +1,0 @@
-FCFS Seek Sequence:
-50 -> 82 -> 170 -> 43 -> 140 -> 24 -> 16 -> 190
-
-Total Seek Operations: 642

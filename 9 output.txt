@@ -1,4 +1,0 @@
-SSTF Seek Sequence:
-50 -> 43 -> 24 -> 16 -> 82 -> 140 -> 170 -> 190
-
-Total Seek Operations: 208
