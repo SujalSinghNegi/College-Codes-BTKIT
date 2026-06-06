@@ -1,0 +1,484 @@
+
+========== 1.cpp ==========
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Process { int id, at, bt; };
+
+int main() {
+    vector<Process> p = {{1, 0, 4}, {2, 2, 3}, {3, 5, 2}};
+    int time = 0; 
+    float wt = 0, tat = 0;
+
+    cout << "FCFS Gantt Chart:\n" << time;
+
+    for (auto& pr : p) {
+        if (time < pr.at) {
+            time = pr.at;
+            cout << "-[IDLE]-" << time;
+        }
+        
+        time += pr.bt;
+        cout << "-[ P" << pr.id << " ]-" << time;
+        
+        int curr_tat = time - pr.at;
+        tat += curr_tat; 
+        wt += (curr_tat - pr.bt);
+    }
+    
+    cout << "\n\nAvg WT: " << wt/p.size() << ", Avg TAT: " << tat/p.size() << "\n";
+    return 0;
+}
+========== 1 output.txt ==========
+
+FCFS Gantt Chart:
+0-[ P1 ]-4-[ P2 ]-7-[ P3 ]-9
+
+Avg WT: 1.33, Avg TAT: 4.33
+========== 2.cpp ==========
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Process { int id, at, bt; bool comp; };
+
+int main() {
+    vector<Process> p = {{1, 0, 6, false}, {2, 1, 8, false}, {3, 2, 7, false}, {4, 3, 3, false}};
+    int n = p.size(), time = 0, done = 0;
+    float wt = 0, tat = 0;
+
+    cout << "SJF Gantt Chart:\n" << time;
+
+    while (done < n) {
+        int idx = -1, min_bt = 9999;
+        
+        for (int i = 0; i < n; i++) {
+            if (p[i].at <= time && !p[i].comp && p[i].bt < min_bt) {
+                min_bt = p[i].bt; 
+                idx = i;
+            }
+        }
+
+        if (idx != -1) {
+            time += p[idx].bt;
+            cout << "-[ P" << p[idx].id << " ]-" << time;
+            
+            int curr_tat = time - p[idx].at;
+            tat += curr_tat; 
+            wt += (curr_tat - p[idx].bt);
+            
+            p[idx].comp = true; 
+            done++;
+        } else {
+            time++;
+            cout << "-[IDLE]-" << time;
+        }
+    }
+
+    cout << "\n\nAvg WT: " << wt/n << ", Avg TAT: " << tat/n << "\n";
+    return 0;
+}
+========== 2 output.txt ==========
+
+SJF Gantt Chart:
+0-[ P1 ]-6-[ P4 ]-9-[ P3 ]-16-[ P2 ]-24
+
+Avg WT: 6.25, Avg TAT: 12.25
+========== 3.cpp ==========
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Process { int id, at, bt, rem; };
+
+int main() {
+    vector<Process> p = {{1, 0, 8, 8}, {2, 1, 4, 4}, {3, 2, 9, 9}, {4, 3, 5, 5}};
+    int n = p.size(), time = 0, done = 0, last_p = -1;
+    bool was_idle = false;
+    float wt = 0, tat = 0;
+
+    cout << "SJRTF Gantt Chart:\n" << time;
+
+    while (done < n) {
+        int idx = -1, min_rem = 9999;
+        
+        for (int i = 0; i < n; i++) {
+            if (p[i].at <= time && p[i].rem > 0 && p[i].rem < min_rem) {
+                min_rem = p[i].rem; 
+                idx = i;
+            }
+        }
+
+        // If we switch to a new process, print the old one
+        if (idx != last_p && time > 0) {
+            if (last_p != -1) cout << "-[ P" << p[last_p].id << " ]-" << time;
+            else if (was_idle) cout << "-[IDLE]-" << time;
+        }
+
+        if (idx != -1) {
+            was_idle = false;
+            p[idx].rem--; 
+            time++;
+            
+            if (p[idx].rem == 0) {
+                done++;
+                int curr_tat = time - p[idx].at;
+                tat += curr_tat; 
+                wt += (curr_tat - p[idx].bt);
+                cout << "-[ P" << p[idx].id << " ]-" << time;
+                last_p = -1; // Reset so the next process handles its own printing
+            } else {
+                last_p = idx;
+            }
+        } else {
+            was_idle = true;
+            last_p = -1;
+            time++;
+        }
+    }
+
+    cout << "\n\nAvg WT: " << wt/n << ", Avg TAT: " << tat/n << "\n";
+    return 0;
+}
+========== 3 output.txt ==========
+
+SJRTF Gantt Chart:
+0-[ P1 ]-1-[ P2 ]-5-[ P4 ]-10-[ P1 ]-17-[ P3 ]-26
+
+Avg WT: 6.5, Avg TAT: 13
+========== 4.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct Process { int id, at, bt, rem; };
+
+int main() {
+    vector<Process> p = {{1, 0, 5, 5}, {2, 1, 3, 3}, {3, 2, 2, 2}};
+    int n = p.size(), tq = 2, time = 0, done = 0;
+    float wt = 0, tat = 0;
+
+    cout << "RR Gantt Chart:\n" << time;
+
+    while (done < n) {
+        bool idle = true;
+        
+        for (auto& pr : p) {
+            if (pr.at <= time && pr.rem > 0) {
+                idle = false;
+                
+                int step = min(pr.rem, tq);
+                time += step; 
+                pr.rem -= step;
+                
+                cout << "-[ P" << pr.id << " ]-" << time;
+
+                if (pr.rem == 0) {
+                    done++;
+                    int curr_tat = time - pr.at;
+                    tat += curr_tat; 
+                    wt += (curr_tat - pr.bt);
+                }
+            }
+        }
+        if (idle) {
+            time++;
+            cout << "-[IDLE]-" << time;
+        }
+    }
+
+    cout << "\n\nAvg WT: " << wt/n << ", Avg TAT: " << tat/n << "\n";
+    return 0;
+}
+========== 4 output.txt ==========
+
+RR Gantt Chart:
+0-[ P1 ]-2-[ P2 ]-4-[ P3 ]-6-[ P1 ]-8-[ P2 ]-9-[ P1 ]-10
+
+Avg WT: 4, Avg TAT: 7.33333
+========== 5.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    vector<int> pages = {1, 3, 0, 3, 5, 6, 3};
+    int f_cnt = 3, faults = 0, idx = 0;
+    vector<int> frames(f_cnt, -1);
+
+    for (int p : pages) {
+        cout << "Req: " << p << " -> ";
+        
+        if (find(frames.begin(), frames.end(), p) == frames.end()) {
+            frames[idx] = p;
+            idx = (idx + 1) % f_cnt;
+            faults++;
+            cout << "FAULT | ";
+        } else {
+            cout << "HIT   | ";
+        }
+        
+        for (int f : frames) {
+            if (f != -1) cout << "[" << f << "] ";
+            else cout << "[ ] ";
+        }
+        cout << "\n";
+    }
+    
+    cout << "\nTotal Page Faults: " << faults << "\n";
+    return 0;
+}
+========== 5 output.txt ==========
+
+Req: 1 -> FAULT | [1] [ ] [ ] 
+Req: 3 -> FAULT | [1] [3] [ ] 
+Req: 0 -> FAULT | [1] [3] [0] 
+Req: 3 -> HIT   | [1] [3] [0] 
+Req: 5 -> FAULT | [5] [3] [0] 
+Req: 6 -> FAULT | [5] [6] [0] 
+Req: 3 -> FAULT | [5] [6] [3] 
+
+Total Page Faults: 6
+========== 6.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    vector<int> pages = {1, 3, 0, 3, 5, 6, 3};
+    int f_cnt = 3, faults = 0, time = 0;
+    vector<int> frames(f_cnt, -1), last_used(f_cnt, 0);
+
+    for (int p : pages) {
+        cout << "Req: " << p << " -> ";
+        time++;
+        auto it = find(frames.begin(), frames.end(), p);
+        
+        if (it == frames.end()) {
+            faults++;
+            int lru_idx = min_element(last_used.begin(), last_used.end()) - last_used.begin();
+            frames[lru_idx] = p;
+            last_used[lru_idx] = time;
+            cout << "FAULT | ";
+        } else {
+            last_used[it - frames.begin()] = time;
+            cout << "HIT   | ";
+        }
+        
+        for (int f : frames) {
+            if (f != -1) cout << "[" << f << "] ";
+            else cout << "[ ] ";
+        }
+        cout << "\n";
+    }
+    cout << "\nTotal Page Faults: " << faults << "\n";
+    return 0;
+}
+========== 6 output.txt ==========
+
+Req: 1 -> FAULT | [1] [ ] [ ] 
+Req: 3 -> FAULT | [1] [3] [ ] 
+Req: 0 -> FAULT | [1] [3] [0] 
+Req: 3 -> HIT   | [1] [3] [0] 
+Req: 5 -> FAULT | [5] [3] [0] 
+Req: 6 -> FAULT | [5] [3] [6] 
+Req: 3 -> HIT   | [5] [3] [6] 
+
+Total Page Faults: 5
+========== 7.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    vector<int> pages = {1, 3, 0, 3, 5, 6, 3};
+    int f_cnt = 3, faults = 0, n = pages.size();
+    vector<int> frames;
+
+    for (int i = 0; i < n; i++) {
+        int p = pages[i];
+        cout << "Req: " << p << " -> ";
+        
+        if (find(frames.begin(), frames.end(), p) == frames.end()) {
+            faults++;
+            cout << "FAULT | ";
+            if (frames.size() < f_cnt) {
+                frames.push_back(p);
+            } else {
+                int farthest = i, replace_idx = -1;
+                for (int j = 0; j < frames.size(); j++) {
+                    int next_use = n;
+                    for (int k = i + 1; k < n; k++) {
+                        if (frames[j] == pages[k]) {
+                            next_use = k;
+                            break;
+                        }
+                    }
+                    if (next_use > farthest) {
+                        farthest = next_use;
+                        replace_idx = j;
+                    }
+                }
+                frames[replace_idx] = p;
+            }
+        } else {
+            cout << "HIT   | ";
+        }
+        
+        for (int j = 0; j < f_cnt; j++) {
+            if (j < frames.size()) cout << "[" << frames[j] << "] ";
+            else cout << "[ ] ";
+        }
+        cout << "\n";
+    }
+    cout << "\nTotal Page Faults: " << faults << "\n";
+    return 0;
+}
+========== 7 output.txt ==========
+
+Req: 1 -> FAULT | [1] [ ] [ ] 
+Req: 3 -> FAULT | [1] [3] [ ] 
+Req: 0 -> FAULT | [1] [3] [0] 
+Req: 3 -> HIT   | [1] [3] [0] 
+Req: 5 -> FAULT | [5] [3] [0] 
+Req: 6 -> FAULT | [6] [3] [0] 
+Req: 3 -> HIT   | [6] [3] [0] 
+
+Total Page Faults: 5
+========== 8.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+int main() {
+    vector<int> req = {82, 170, 43, 140, 24, 16, 190};
+    int head = 50, total_seek = 0;
+
+    cout << "FCFS Seek Sequence:\n" << head;
+
+    for (int r : req) {
+        total_seek += abs(r - head);
+        head = r;
+        cout << " -> " << head;
+    }
+
+    cout << "\n\nTotal Seek Operations: " << total_seek << "\n";
+    return 0;
+}
+========== 8 output.txt ==========
+
+FCFS Seek Sequence:
+50 -> 82 -> 170 -> 43 -> 140 -> 24 -> 16 -> 190
+
+Total Seek Operations: 642
+========== 9.cpp ==========
+
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    vector<int> req = {82, 170, 43, 140, 24, 16, 190};
+    int head = 50, total_seek = 0, n = req.size();
+    vector<bool> vis(n, false);
+
+    cout << "SSTF Seek Sequence:\n" << head;
+
+    for (int i = 0; i < n; i++) {
+        int min_dist = 9999, idx = -1;
+        
+        for (int j = 0; j < n; j++) {
+            if (!vis[j] && abs(req[j] - head) < min_dist) {
+                min_dist = abs(req[j] - head);
+                idx = j;
+            }
+        }
+        
+        vis[idx] = true;
+        total_seek += min_dist;
+        head = req[idx];
+        cout << " -> " << head;
+    }
+
+    cout << "\n\nTotal Seek Operations: " << total_seek << "\n";
+    return 0;
+}
+========== 9 output.txt ==========
+
+SSTF Seek Sequence:
+50 -> 43 -> 24 -> 16 -> 82 -> 140 -> 170 -> 190
+
+Total Seek Operations: 208
+========== 10.cpp ==========
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    int n = 5, m = 3; 
+    vector<vector<int>> alloc = {{0, 1, 0}, {2, 0, 0}, {3, 0, 2}, {2, 1, 1}, {0, 0, 2}};
+    vector<vector<int>> max_res = {{7, 5, 3}, {3, 2, 2}, {9, 0, 2}, {2, 2, 2}, {4, 3, 3}};
+    vector<int> avail = {3, 3, 2};
+    
+    vector<vector<int>> need(n, vector<int>(m));
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            need[i][j] = max_res[i][j] - alloc[i][j];
+
+    vector<bool> finish(n, false);
+    vector<int> safe_seq;
+    int count = 0;
+
+    while (count < n) {
+        bool found = false;
+        for (int p = 0; p < n; p++) {
+            if (!finish[p]) {
+                bool can_alloc = true;
+                for (int j = 0; j < m; j++) {
+                    if (need[p][j] > avail[j]) {
+                        can_alloc = false;
+                        break;
+                    }
+                }
+                if (can_alloc) {
+                    for (int j = 0; j < m; j++) avail[j] += alloc[p][j];
+                    safe_seq.push_back(p);
+                    finish[p] = true;
+                    found = true;
+                    count++;
+                }
+            }
+        }
+        if (!found) {
+            cout << "System is in DEADLOCK!\n";
+            return 0;
+        }
+    }
+
+    cout << "System is in SAFE state.\nSafe Sequence: ";
+    for (int i = 0; i < n; i++) cout << "P" << safe_seq[i] << (i == n-1 ? "" : " -> ");
+    cout << "\n";
+
+    return 0;
+}
+========== 10 output.txt ==========
+
+System is in SAFE state.
+Safe Sequence: P1 -> P3 -> P4 -> P0 -> P2
