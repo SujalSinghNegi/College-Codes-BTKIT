@@ -1,2 +1,4 @@
-System is in SAFE state.
-Safe Sequence: P1 -> P3 -> P4 -> P0 -> P2
+SCAN Seek Sequence:
+50 -> 82 -> 140 -> 170 -> 190 -> 199 -> 43 -> 24 -> 16
+
+Total Seek Operations: 332

@@ -1,0 +1,11 @@
+1-WAP For fcfs cpu scheduling 
+2-WAP for sjf cpu scheduling 
+3-WAP for priority CPU scheduling 
+4-WAP for rr cpu scheduling 
+5-WAP for fifo scheduling in page replacement algorithm 
+6-Wap for lru page replacement algorithm 
+7-Wap for optimal page replacement algorithm 
+8-Wap for fcfs  disk scheduling 
+9-Wap for seek time  disk scheduling 
+10-Wap for scan  disk scheduling
+11-Wap for deadlock
