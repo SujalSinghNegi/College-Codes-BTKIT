@@ -1,32 +1,32 @@
 import math
 
-def calculate_distance(p1, p2):
+def calc(p1, p2):
     return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
-def tsp_nearest_neighbor(cities):
+def tsp(cities):
     unvisited = list(cities.keys())
-    start_city = unvisited[0]
-    current_city = start_city
+    start = unvisited[0]
+    cur = start
     
-    unvisited.remove(current_city)
-    path = [current_city]
-    total_distance = 0
+    unvisited.remove(cur)
+    path = [cur]
+    dist = 0
     
     while unvisited:
-        nearest_city = min(
+        near = min(
             unvisited, 
-            key=lambda city: calculate_distance(cities[current_city], cities[city])
+            key=lambda city: calc(cities[cur], cities[city])
         )
         
-        total_distance += calculate_distance(cities[current_city], cities[nearest_city])
-        current_city = nearest_city
-        unvisited.remove(current_city)
-        path.append(current_city)
+        dist += calc(cities[cur], cities[near])
+        cur = near
+        unvisited.remove(cur)
+        path.append(cur)
     
-    total_distance += calculate_distance(cities[current_city], cities[start_city])
-    path.append(start_city)
+    dist += calc(cities[cur], cities[start])
+    path.append(start)
     
-    return path, total_distance
+    return path, dist
 
 cities = {
     'A': (0, 0),
@@ -36,17 +36,21 @@ cities = {
     'E': (6, 1)
 }
 
-optimal_path, min_distance = tsp_nearest_neighbor(cities)
+optimal_path, minDist = tsp(cities)
 
 print("Route:", " -> ".join(optimal_path))
-print("Distance:", round(min_distance, 2))
+print("Distance:", round(minDist, 2))
 
+
+-----------
+Output :
+Route: A -> C -> E -> B -> D -> A
+Distance: 25.64
 
 
 
 
 -----
-
 
 
 import nltk
@@ -56,23 +60,21 @@ from nltk.tokenize import word_tokenize
 nltk.download('punkt')
 nltk.download('stopwords')
 
-def remove_stopwords(text):
-    stop_words = set(stopwords.words('english'))
-    words = word_tokenize(text)
-    filtered_words = [word for word in words if word.lower() not in stop_words]
-    filtered_text = " ".join(filtered_words)
-    return filtered_text
+with open("input.txt", "r") as file: 
+    text = file.read()
 
-if __name__ == "__main__":
-    sample_passage = "This is a simple example passage to demonstrate how we can easily remove stop words using the NLTK library in Python."
-    
-    print("Original Passage:")
-    print(sample_passage)
-    print("-" * 40)
-    
-    result = remove_stopwords(sample_passage)
-    
-    print("Filtered Passage:")
-    print(result)
+words = word_tokenize(text)
 
+stop_words = set(stopwords.words('english'))
+
+filtered = [w for w in words if w.lower() not in stop_words]
+
+print("Filtered Text: ", " ".join(filtered))
+
+----------
+input file->
+This is a sample test file. My name is sujal.
+-------------
+output ->
+sample test file . name sujal .
 
